@@ -180,7 +180,7 @@ public class ConfigurationDialog extends JFrame {
 
 
         if (!configuration.getUser().equals("") && !configuration.getPassword().equals("")) {
-            if (faradayClient.Login(configuration.getUser(), configuration.getPassword())) {
+            if (faradayClient.Login(configuration.getUser(), configuration.getPassword(), configuration.getServer())) {
                 fldUser.setText(configuration.getUser());
                 fldPass.setText(configuration.getPassword());
                 fldServer.setText(configuration.getServer());
@@ -213,7 +213,7 @@ public class ConfigurationDialog extends JFrame {
                     if (fldUser.getText().equals("") || fldPass.getText().equals("") || fldServer.getText().equals("")) {
                         showMessage(messages.getString("faraday.message.invalid.check.credentials"), messages.getString("faraday.dialog.login.title"), JOptionPane.ERROR_MESSAGE);
                     } else {
-                        if (faradayClient.Login(fldUser.getText(), fldPass.getText())) {
+                        if (faradayClient.Login(fldUser.getText(), fldPass.getText(), fldServer.getText())) {
                             if (!tabbedPane.isEnabledAt(1)) {
                                 tabbedPane.setEnabledAt(1, true);
                             }
@@ -409,7 +409,7 @@ public class ConfigurationDialog extends JFrame {
         try {
             Configuration configuration = Configuration.getSingleton();
             configuration.restore(fUser);
-            if (faradayClient.Login(configuration.getUser(), configuration.getPassword())) {
+            if (faradayClient.Login(configuration.getUser(), configuration.getPassword(), configuration.getServer())) {
                 fldUser.setText(configuration.getUser());
                 fldPass.setText(configuration.getPassword());
                 fldServer.setText(configuration.getServer());

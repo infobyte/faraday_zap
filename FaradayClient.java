@@ -42,11 +42,11 @@ public class FaradayClient {
 
     }
 
-    public boolean Login(String username, String password) {
+    public boolean Login(String username, String password, String server) {
         Logout();
         HttpClient httpClient = HttpClients.createDefault();
         String LOGIN_URL = "_api/login";
-        HttpPost httpPost = new HttpPost(this.baseUrl + LOGIN_URL);
+        HttpPost httpPost = new HttpPost(server + LOGIN_URL);
 
         // Request parameters and other properties.
         List<BasicNameValuePair> params = new ArrayList<>(2);
@@ -61,6 +61,8 @@ public class FaradayClient {
                 configuration.setSession(response.getFirstHeader("Set-Cookie").getValue());
                 configuration.setUser(username);
                 configuration.setPassword(password);
+                configuration.setServer(server);
+                setBaseUrl(server);
                 return true;
             } else if (response.getStatusLine().getStatusCode() == 302) {
                 return true;
@@ -512,6 +514,9 @@ public class FaradayClient {
         }
     }
 
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
 }
 
 
