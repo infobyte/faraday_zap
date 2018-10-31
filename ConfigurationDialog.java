@@ -19,6 +19,7 @@ public class ConfigurationDialog extends JFrame {
     private FaradayClient faradayClient;
 
     private static String LOGIN_BUTTON = "Login";
+    private static String LOGOUT_BUTTON = "Logout";
     private static String WORKSPACES_FIELD = "Select faraday workspace";
     private static String IMPORT_NEW_VULNS_FIELD = "Import new vulnerabilities";
     private static String SET_CONFIG_AS_DEFAULT = "Set this configuration as default";
@@ -40,6 +41,7 @@ public class ConfigurationDialog extends JFrame {
 
 
     private JButton loginButton;
+    private JButton logoutButton;
     private JButton refreshButton;
     private JButton restoreButton;
     private JButton importButton;
@@ -67,6 +69,7 @@ public class ConfigurationDialog extends JFrame {
         String PASS_FIELD = messages.getString("faraday.config.dialog.auth.pass");
         String SERVER_FIELD = messages.getString("faraday.config.dialog.server");
         LOGIN_BUTTON = messages.getString("faraday.config.dialog.auth.login");
+        LOGOUT_BUTTON = messages.getString("faraday.config.dialog.auth.logout");
         WORKSPACES_FIELD = messages.getString("faraday.config.dialog.workspace");
         IMPORT_NEW_VULNS_FIELD = messages.getString("faraday.config.dialog.import.new");
         SET_CONFIG_AS_DEFAULT = messages.getString("faraday.config.dialog.default");
@@ -113,6 +116,7 @@ public class ConfigurationDialog extends JFrame {
         buttonConfigPanel.add(getSaveButton());
 //        buttonConfigPanel.add(getImportButton());
         buttonConfigPanel.add(getLoginButton());
+        buttonConfigPanel.add(getLogoutButton());
 
 
         authPanel.addComponentListener(new ComponentListener() {
@@ -158,11 +162,16 @@ public class ConfigurationDialog extends JFrame {
             @Override
             public void componentShown(ComponentEvent componentEvent) {
                 loginButton.setVisible(false);
+                logoutButton.setVisible(false);
             }
 
             @Override
             public void componentHidden(ComponentEvent componentEvent) {
-                loginButton.setVisible(true);
+                if (configuration.getSession().equals("")) {
+                    loginButton.setVisible(true);
+                } else {
+                    logoutButton.setVisible(true);
+                }
             }
         });
 
@@ -177,6 +186,14 @@ public class ConfigurationDialog extends JFrame {
 
         cp.add(tabbedPane, BorderLayout.NORTH);
         cp.add(buttonConfigPanel, BorderLayout.SOUTH);
+
+        if (configuration.getSession() != null && !configuration.getSession().equals("")) {
+            logoutButton.setVisible(true);
+            loginButton.setVisible(false);
+        } else {
+            loginButton.setVisible(true);
+            logoutButton.setVisible(false);
+        }
 
 
         if (!configuration.getUser().equals("") && !configuration.getPassword().equals("")) {
@@ -214,6 +231,8 @@ public class ConfigurationDialog extends JFrame {
                         showMessage(messages.getString("faraday.message.invalid.check.credentials"), messages.getString("faraday.dialog.login.title"), JOptionPane.ERROR_MESSAGE);
                     } else {
                         if (faradayClient.Login(fldUser.getText(), fldPass.getText(), fldServer.getText())) {
+                            logoutButton.setVisible(true);
+                            loginButton.setVisible(false);
                             if (!tabbedPane.isEnabledAt(1)) {
                                 tabbedPane.setEnabledAt(1, true);
                             }
@@ -238,6 +257,61 @@ public class ConfigurationDialog extends JFrame {
         }
 
         return this.loginButton;
+    }
+
+
+    private JButton getLogoutButton() {
+        if (this.logoutButton == null) {
+            this.logoutButton = new JButton();
+            this.logoutButton.setText(LOGOUT_BUTTON);
+            this.logoutButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    Configuration configuration = Configuration.getSingleton();
+                    String userTemp = configuration.getUser();
+                    if (faradayClient.Logout()) {
+                        logoutButton.setVisible(false);
+                        loginButton.setVisible(true);
+
+                        if (tabbedPane.isEnabledAt(1)) {
+                            tabbedPane.setEnabledAt(1, false);
+                        }
+                        tabbedPane.setSelectedIndex(0);
+
+                        Properties prop = new Properties();
+                        InputStream input = null;
+                        try {
+                            String filePath = Constant.getZapHome() + "faraday" + File.separator + "default.properties";
+                            input = new FileInputStream(filePath);
+                            // load a properties file
+                            prop.load(input);
+                            // set the properties value
+                            String fUser = prop.getProperty("default");
+                            if (fUser.equals(userTemp)) {
+                                removeDefaultConfig();
+                            }
+
+                        } catch (IOException io) {
+                            System.out.println("We can't found default.properties file");
+                        } finally {
+                            if (input != null) {
+                                try {
+                                    input.close();
+                                } catch (IOException er) {
+                                    er.printStackTrace();
+                                }
+                            }
+                        }
+
+
+                        showMessage(messages.getString("faraday.dialog.logout.success"), messages.getString("faraday.dialog.logout.title"), JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        showMessage(messages.getString("faraday.dialog.logout.error"), messages.getString("faraday.dialog.logout.title"), JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
+        }
+
+        return this.logoutButton;
     }
 
 
@@ -373,7 +447,7 @@ public class ConfigurationDialog extends JFrame {
                 this,
                 message,
                 title,
-                JOptionPane.ERROR_MESSAGE);
+                icon);
     }
 
 
