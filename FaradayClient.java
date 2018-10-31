@@ -315,7 +315,7 @@ public class FaradayClient {
         }
 
 
-        String VULN_URL = "_api/v2/ws/" + workspace + "/vulns/?command_id="+commandId;
+        String VULN_URL = "_api/v2/ws/" + workspace + "/vulns/?command_id=" + commandId;
         HttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(this.baseUrl + VULN_URL);
         try {
@@ -348,7 +348,9 @@ public class FaradayClient {
         params.put("ws", workspace);
         params.put("request", alert.getMessage().getRequestHeader().toString());
         params.put("response", alert.getMessage().getResponseHeader().toString());
-        params.put("desc", alert.getDescription());
+        String desc = !alert.getParam().equals("") ? alert.getDescription() + "\nWith parameter: '" + alert.getParam() + "'" :
+                alert.getDescription();
+        params.put("desc", desc);
         params.put("resolution", alert.getSolution());
         params.put("type", "VulnerabilityWeb");
         params.put("data", alert.getPostData());
