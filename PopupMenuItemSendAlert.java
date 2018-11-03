@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.parosproxy.paros.Constant;
 import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.view.View;
+import org.zaproxy.zap.extension.alert.AlertNode;
 import org.zaproxy.zap.extension.alert.PopupMenuItemAlert;
 
 import javax.swing.*;
@@ -15,6 +16,7 @@ public class PopupMenuItemSendAlert extends PopupMenuItemAlert {
     private FaradayClient faradayClient;
     private ResourceBundle messages = null;
     private int selectionCount = 0;
+    private int totalSelectionCount = 0;
     private boolean treeAlertParentSelected = false;
 
     public PopupMenuItemSendAlert(String label) {
@@ -37,23 +39,24 @@ public class PopupMenuItemSendAlert extends PopupMenuItemAlert {
             int iconMessage = 1;
             switch (responseCode) {
                 case 201:
+                case 409:
                     message = messages.getString("faraday.send.alert.success");
                     break;
                 case 403:
                     message = messages.getString("faraday.send.alert.permissions.error");
                     iconMessage = JOptionPane.WARNING_MESSAGE;
                     break;
-                case 409:
-                    message = messages.getString("faraday.send.alert.conflict");
-                    iconMessage = JOptionPane.WARNING_MESSAGE;
-                    break;
+//                case 409:
+//                    message = messages.getString("faraday.send.alert.conflict");
+//                    iconMessage = JOptionPane.WARNING_MESSAGE;
+//                    break;
                 case 500:
                     message = "Unable to send " + alert.getName() + " to Faraday";
                     iconMessage = JOptionPane.ERROR_MESSAGE;
                     break;
             }
 
-            if (this.selectionCount == 1 && !treeAlertParentSelected) {
+            if (canShowMessageDialog()/*this.selectionCount == 1 && !treeAlertParentSelected*/) {
                 JOptionPane.showMessageDialog(
                         this,
                         message,
@@ -70,13 +73,16 @@ public class PopupMenuItemSendAlert extends PopupMenuItemAlert {
 
 
         } else {
-            JOptionPane.showMessageDialog(
-                    this,
-                    messages.getString("faraday.send.alert.permissions.error"),
-                    messages.getString("faraday.button.send.alert"),
-                    JOptionPane.ERROR_MESSAGE);
+            if (canShowMessageDialog()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        messages.getString("faraday.send.alert.permissions.error"),
+                        messages.getString("faraday.button.send.alert"),
+                        JOptionPane.ERROR_MESSAGE);
+                logger.error(messages.getString("faraday.send.alert.permissions.error"));
+            }
 
-            logger.error(messages.getString("faraday.send.alert.permissions.error"));
+
             if (View.isInitialised()) {
                 // Report info to the Output tab
                 View.getSingleton().getOutputPanel().append(messages.getString("faraday.send.alert.permissions.error") + "\n");
@@ -88,6 +94,7 @@ public class PopupMenuItemSendAlert extends PopupMenuItemAlert {
     @Override
     public boolean isEnableForComponent(Component invoker) {
         logger.info(invoker.getName());
+        this.totalSelectionCount = 0;
         try {
             if (Configuration.getSingleton().getSession() == null || Configuration.getSingleton().getSession().equals("")) {
                 return false;
@@ -95,6 +102,11 @@ public class PopupMenuItemSendAlert extends PopupMenuItemAlert {
             treeAlertParentSelected = ((JTree) invoker).isRowSelected(0);
             if (super.isEnableForComponent(invoker) || treeAlertParentSelected) {
                 this.selectionCount = ((JTree) invoker).getSelectionCount();
+                for (int i = 0; i < ((JTree) invoker).getSelectionPaths().length; i++) {
+                    AlertNode nodeTemp = (AlertNode) ((JTree) invoker).getSelectionPaths()[i].getLastPathComponent();
+                    this.totalSelectionCount += getTotalAlertsToProcess(nodeTemp);
+                }
+
                 setEnabled(true);
                 return true;
             }
@@ -102,5 +114,29 @@ public class PopupMenuItemSendAlert extends PopupMenuItemAlert {
         } catch (Exception e) {
             return false;
         }
+    }
+
+
+    private int getTotalAlertsToProcess(AlertNode node) {
+        if (node.getChildCount() > 0) {
+            int total = 0;
+            for (int i = 0; i < node.getChildCount(); i++) {
+                total += getTotalAlertsToProcess(node.getChildAt(i));
+            }
+            return total;
+        } else {
+            return 1;
+        }
+
+    }
+
+    private boolean canShowMessageDialog() {
+        this.totalSelectionCount--;
+        if (this.treeAlertParentSelected) {
+            this.totalSelectionCount = 1;
+            this.treeAlertParentSelected = false;
+        }
+
+        return this.totalSelectionCount == 0;
     }
 }
