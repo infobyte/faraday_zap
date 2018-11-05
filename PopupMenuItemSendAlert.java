@@ -35,9 +35,10 @@ public class PopupMenuItemSendAlert extends PopupMenuItemAlert {
         String session = configuration.getSession();
         if (workspace != null && session != null && !workspace.equals("") && !session.equals("")) {
             int responseCode = faradayClient.AddVulnerability(alert, configuration.getWorkspace(), session);
-            String message = "";
+            String message;
             int iconMessage = 1;
             switch (responseCode) {
+                case 200:
                 case 201:
                 case 409:
                     message = messages.getString("faraday.send.alert.success");
@@ -50,7 +51,13 @@ public class PopupMenuItemSendAlert extends PopupMenuItemAlert {
 //                    message = messages.getString("faraday.send.alert.conflict");
 //                    iconMessage = JOptionPane.WARNING_MESSAGE;
 //                    break;
+                case 400:
                 case 500:
+                    message = "Unable to send " + alert.getName() + " to Faraday";
+                    iconMessage = JOptionPane.ERROR_MESSAGE;
+                    break;
+
+                default:
                     message = "Unable to send " + alert.getName() + " to Faraday";
                     iconMessage = JOptionPane.ERROR_MESSAGE;
                     break;
