@@ -18,8 +18,8 @@
  *  limitations under the License.
  */
 
-package org.zaproxy.zap.extension.faraday;
-
+package faraday.src.main.java.org.zaproxy.zap.extension.faraday;
+import org.apache.log4j.Logger;
 import org.parosproxy.paros.Constant;
 
 import javax.swing.*;
@@ -33,13 +33,36 @@ public class Configuration {
     private String session;
     private String workspace;
     private boolean autoImport;
+    private boolean ignoreSslErrors;
     private static Configuration _instance;
+    private static final Logger logger = Logger.getLogger(Configuration.class);
+    private final File configurationFile;
 
     private Configuration() {
+        logger.info("Init Configuration");
         this.user = "";
         this.password = "";
         this.server = "http://127.0.0.1:5985/";
         this.autoImport = false;
+        this.ignoreSslErrors = false;
+        this.session = "";
+        this.workspace = "";
+        String userHome = System.getProperty("user.home");
+        String outputFolder = Constant.getZapHome() + "faraday";
+        File folder = new File(outputFolder);
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
+        this.configurationFile = new File(outputFolder + File.separator + "faraday.properties");
+        if (! this.configurationFile.exists()){
+            logger.info("Configuration file dont exists, generate default");
+            save();
+        } else
+        {
+            this.load();
+        }
+
+
     }
 
     public static Configuration getSingleton() {
@@ -48,68 +71,60 @@ public class Configuration {
         return _instance;
     }
 
-    public boolean save() throws IOException {
-
-        Properties prop = new Properties();
-        OutputStream output = null;
-
-        String userHome = System.getProperty("user.home");
-        String outputFolder = Constant.getZapHome() + "faraday";
-        File folder = new File(outputFolder);
-        if (!folder.exists()) {
-            folder.mkdir();
-        }
-
-
-        String filePath = outputFolder + File.separator + this.getUser() + ".properties";
-        output = new FileOutputStream(filePath);
-
-        // set the properties value
-        prop.setProperty("fuser", this.getUser());
-        prop.setProperty("fpassword", this.getPassword());
-        prop.setProperty("fserver", this.getServer());
-        prop.setProperty("fworkspace", this.getWorkspace());
-        prop.setProperty("fsession", this.getSession());
-
-        // save properties to project root folder
-        prop.store(output, null);
-
-        if (output != null) {
+    private void load(){
+        if (this.configurationFile.exists()){
             try {
-                output.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return false;
+                Properties prop = new Properties();
+                InputStream input = null;
+                input = new FileInputStream(this.configurationFile.getPath());
+                prop.load(input);
+                this.setUser(prop.getProperty("fuser"));
+                this.setPassword(prop.getProperty("fpassword"));
+                this.setServer(prop.getProperty("fserver"));
+                this.setWorkspace(prop.getProperty("fworkspace"));
+                this.setIgnoreSslErrors(prop.getProperty("fignore_ssl_errors").equals("1"));
+                input.close();
+            } catch (Exception e){
+                logger.error(e);
             }
+
+        } else {
+            logger.error("Configuration file missing");
         }
 
+    }
+
+    public boolean save(){
+        try{
+            Properties prop = new Properties();
+            OutputStream output = null;
+            output = new FileOutputStream(configurationFile.getPath());
+            // set the properties value
+            prop.setProperty("fuser", this.getUser());
+            prop.setProperty("fpassword", this.getPassword());
+            prop.setProperty("fserver", this.getServer());
+            prop.setProperty("fworkspace", this.getWorkspace());
+            prop.setProperty("fignore_ssl_errors", this.isIgnoreSslErrors() ? "1" : "0");
+            // save properties to project root folder
+            prop.store(output, null);
+            logger.info("Configuration saved");
+
+        } catch (Exception e){
+            logger.error("Error saving configuration: "+ e);
+        }
         return true;
     }
 
 
-    public void restore(String fUser) throws IOException {
-        Properties prop = new Properties();
-        InputStream input = null;
-
-        String outputFolder = Constant.getZapHome() + "faraday";
-        String filePath = outputFolder + File.separator + fUser + ".properties";
-        input = new FileInputStream(filePath);
-
-        // load a properties file
-        prop.load(input);
-
-        this.setUser(prop.getProperty("fuser"));
-        this.setPassword(prop.getProperty("fpassword"));
-        this.setServer(prop.getProperty("fserver"));
-        this.setWorkspace(prop.getProperty("fworkspace"));
-
-        if (input != null) {
-            try {
-                input.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    public void restoreDefaultConfiguration() {
+        logger.info("Restore default configuration");
+        this.setUser("");
+        this.setPassword("");
+        this.setServer("http://127.0.0.1:5985/");
+        this.setWorkspace("");
+        this.setIgnoreSslErrors(false);
+        this.session = "";
+        this.save();
 
     }
 
@@ -143,6 +158,14 @@ public class Configuration {
 
     public void setAutoImport(boolean autoImport) {
         this.autoImport = autoImport;
+    }
+
+    public boolean isIgnoreSslErrors() {
+        return ignoreSslErrors;
+    }
+
+    public void setIgnoreSslErrors(boolean ignoreSslErrors) {
+        this.ignoreSslErrors = ignoreSslErrors;
     }
 
     public String getSession() {

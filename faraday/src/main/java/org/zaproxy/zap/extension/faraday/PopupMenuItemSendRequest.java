@@ -1,4 +1,4 @@
-package org.zaproxy.zap.extension.faraday;
+package faraday.src.main.java.org.zaproxy.zap.extension.faraday;
 
 import org.apache.log4j.Logger;
 import org.parosproxy.paros.Constant;
@@ -27,7 +27,8 @@ public class PopupMenuItemSendRequest extends PopupMenuItemHistoryReferenceConta
     public PopupMenuItemSendRequest(String label) {
         super(label, true);
         Configuration configuration = Configuration.getSingleton();
-        faradayClient = new FaradayClient(configuration.getServer());
+        logger.info("Sendo to: "+ configuration.getServer());
+        faradayClient = new FaradayClient(configuration.getServer(), configuration.isIgnoreSslErrors());
     }
 
     @Override
@@ -43,7 +44,7 @@ public class PopupMenuItemSendRequest extends PopupMenuItemHistoryReferenceConta
             Configuration configuration = Configuration.getSingleton();
             String workspace = configuration.getWorkspace();
             String session = configuration.getSession();
-            if (workspace != null && session != null && !workspace.equals("") && !session.equals("")) {
+            if (!workspace.equals("") && !session.equals("")) {
                 int responseCode = faradayClient.AddVulnerability(alert, configuration.getWorkspace(), session);
                 String message = "";
                 int iconMessage = 1;

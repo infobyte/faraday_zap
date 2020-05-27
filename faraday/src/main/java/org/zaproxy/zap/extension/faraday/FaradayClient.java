@@ -1,12 +1,24 @@
-package org.zaproxy.zap.extension.faraday;
+package faraday.src.main.java.org.zaproxy.zap.extension.faraday;
 
+import org.apache.log4j.Logger;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import java.security.cert.X509Certificate;
+import java.security.cert.CertificateException;
 
+import javax.net.ssl.SSLContext;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.Registry;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.StringEntity;
@@ -32,17 +44,19 @@ import java.util.*;
 public class FaradayClient {
 
     private String baseUrl;
+    private boolean ignoreSSLErrors;
+    private static final Logger logger = Logger.getLogger(FaradayClient.class);
 
-    public FaradayClient(String baseUrl) {
+    public FaradayClient(String baseUrl, boolean ignoreSSLErrors) {
         this.baseUrl = baseUrl;
+        this.ignoreSSLErrors = ignoreSSLErrors;
 
     }
 
-    public boolean Login(String username, String password, String server) {
-        Logout();
-        HttpClient httpClient = HttpClients.createDefault();
+    public boolean Login(String username, String password) {
+        HttpClient httpClient = this.getHttpClient();
         String LOGIN_URL = "_api/login";
-        HttpPost httpPost = new HttpPost(server + LOGIN_URL);
+        HttpPost httpPost = new HttpPost(this.baseUrl + LOGIN_URL);
 
         // Request parameters and other properties.
         List<BasicNameValuePair> params = new ArrayList<>(2);
@@ -57,8 +71,9 @@ public class FaradayClient {
                 configuration.setSession(response.getFirstHeader("Set-Cookie").getValue());
                 configuration.setUser(username);
                 configuration.setPassword(password);
-                configuration.setServer(server);
-                setBaseUrl(server);
+                configuration.setServer(this.baseUrl);
+                configuration.setIgnoreSslErrors(this.ignoreSSLErrors);
+                configuration.save();
                 return true;
             } else if (response.getStatusLine().getStatusCode() == 302) {
                 return true;
@@ -78,6 +93,31 @@ public class FaradayClient {
 
     }
 
+    private HttpClient getHttpClient(){
+        if (this.ignoreSSLErrors == true){
+            try {
+                SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy()
+                {
+                    public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException
+                    {
+                        return true;
+                    }
+                }).build();
+                SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+                Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create().register("http", PlainConnectionSocketFactory.getSocketFactory()).register("https", sslSocketFactory).build();
+                return HttpClients
+                        .custom()
+                        .setSSLSocketFactory(sslSocketFactory)
+                        .build();
+            } catch (Exception e){
+                return HttpClients.createDefault();
+            }
+
+        }else{
+            return HttpClients.createDefault();
+        }
+    }
+
     public boolean Logout() {
         String LOGOUT_URL = "_api/logout";
         HttpGet httpGet = new HttpGet(this.baseUrl + LOGOUT_URL);
@@ -90,13 +130,15 @@ public class FaradayClient {
             HttpResponse response = null;
 
             try {
-                HttpClient httpClient = HttpClients.createDefault();
+                HttpClient httpClient = this.getHttpClient();
                 response = httpClient.execute(httpGet);
                 HttpEntity entity = response.getEntity();
                 if (response.getStatusLine().getStatusCode() == 200) {
                     configuration.setSession("");
                     configuration.setUser("");
                     configuration.setPassword("");
+                    configuration.setWorkspace("");
+                    configuration.save();
                     return true;
                 }
                 return false;
@@ -121,7 +163,7 @@ public class FaradayClient {
             HttpResponse response = null;
             InputStream instream = null;
             try {
-                HttpClient httpClient = HttpClients.createDefault();
+                HttpClient httpClient = this.getHttpClient();
                 response = httpClient.execute(httpGet);
                 HttpEntity entity = response.getEntity();
 
@@ -158,7 +200,7 @@ public class FaradayClient {
 
     private int AddCommand(String commandName, String workspace, String session) {
         String COMMAND_URL = "_api/v2/ws/" + workspace + "/commands/";
-        HttpClient httpClient = HttpClients.createDefault();
+        HttpClient httpClient = this.getHttpClient();
         HttpPost httpPost = new HttpPost(this.baseUrl + COMMAND_URL);
 
         try {
@@ -201,7 +243,7 @@ public class FaradayClient {
 
     private int AddHost(Alert alert, String workspace, String session) {
         String VULN_URL = "_api/v2/ws/" + workspace + "/hosts/";
-        HttpClient httpClient = HttpClients.createDefault();
+        HttpClient httpClient = this.getHttpClient();
         HttpPost httpPost = new HttpPost(this.baseUrl + VULN_URL);
 
         try {
@@ -244,7 +286,7 @@ public class FaradayClient {
 
     private int AddService(Alert alert, String workspace, String session, int hostId) {
         String VULN_URL = "_api/v2/ws/" + workspace + "/services/";
-        HttpClient httpClient = HttpClients.createDefault();
+        HttpClient httpClient = this.getHttpClient();
         HttpPost httpPost = new HttpPost(this.baseUrl + VULN_URL);
 
         try {
@@ -312,7 +354,7 @@ public class FaradayClient {
 
 
         String VULN_URL = "_api/v2/ws/" + workspace + "/vulns/?command_id=" + commandId;
-        HttpClient httpClient = HttpClients.createDefault();
+        HttpClient httpClient = this.getHttpClient();
         HttpPost httpPost = new HttpPost(this.baseUrl + VULN_URL);
         try {
 

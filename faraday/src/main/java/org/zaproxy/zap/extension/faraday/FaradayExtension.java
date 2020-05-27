@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.zaproxy.zap.extension.faraday;
+package faraday.src.main.java.org.zaproxy.zap.extension.faraday;
 
 import org.apache.log4j.Logger;
 import org.parosproxy.paros.Constant;
@@ -52,14 +52,22 @@ public class FaradayExtension extends ExtensionAdaptor {
 
     @Override
     public void init() {
+        logger.info("Init Extension");
         super.init();
         initialize();
     }
 
     private void initialize() {
         this.setName(Constant.messages.getString("faraday.extension.name"));
-        this.initConfiguration();
-    }
+        Configuration configuration =  this.initConfiguration();
+        if (configuration.getUser().equals("") && configuration.getPassword().equals("") && configuration.getServer().equals(""))
+        {
+            logger.info("Try to login to faraday with stored credentials");
+        }
+
+        }
+
+
 
     @Override
     public String getAuthor() {
@@ -111,6 +119,7 @@ public class FaradayExtension extends ExtensionAdaptor {
 
     private void showConfigurationDialog() {
         if (configurationDialog == null) {
+            logger.info("Create configuration dialog");
             configurationDialog = new ConfigurationDialog(Constant.messages.getString("faraday.config.dialog.title"));
             configurationDialog.init();
         }
@@ -138,35 +147,10 @@ public class FaradayExtension extends ExtensionAdaptor {
     }
 
 
-    private void initConfiguration() {
+    private Configuration initConfiguration() {
         Configuration configuration = Configuration.getSingleton();
+        return configuration;
 
-        Properties prop = new Properties();
-        InputStream input = null;
-
-        try {
-            String filePath = Constant.getZapHome() + "faraday" + File.separator + "default.properties";
-            input = new FileInputStream(filePath);
-
-            // load a properties file
-            prop.load(input);
-
-            // set the properties value
-            String fUser = prop.getProperty("default");
-            configuration.restore(fUser);
-
-        } catch (IOException io) {
-            System.out.println("We can't find default.properties file: " + io);
-        } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        }
     }
 
 }
