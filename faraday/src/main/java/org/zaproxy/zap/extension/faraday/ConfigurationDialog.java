@@ -11,11 +11,11 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.ResourceBundle;
 
+
+@SuppressWarnings("serial")
 public class ConfigurationDialog extends JFrame {
     private static final Logger logger = Logger.getLogger(ConfigurationDialog.class);
-    private ResourceBundle messages = null;
     private FaradayClient faradayClient;
 
     private static String LOGIN_BUTTON = "Login";
@@ -36,7 +36,7 @@ public class ConfigurationDialog extends JFrame {
     private JTextField fldPass;
     private JTextField fldServer;
 
-    private JComboBox cmbWorkspaces;
+    private JComboBox<String> cmbWorkspaces;
     private JCheckBox cboxSetConfigDefault;
 
 
@@ -56,27 +56,24 @@ public class ConfigurationDialog extends JFrame {
 
     public void init() {
         logger.debug("Init Faraday configuration dialog");
-        messages = ResourceBundle.getBundle(
-                this.getClass().getPackage().getName() +
-                        ".Messages", Constant.getLocale());
         // Setup the content-pane of JFrame in BorderLayout
         Container cp = this.getContentPane();
         cp.setLayout(new BorderLayout(5, 5));
         Border padding = BorderFactory.createEmptyBorder(10, 10, 10, 10);
 
 
-        String USERNAME_FIELD = messages.getString("faraday.config.dialog.auth.user");
-        String PASS_FIELD = messages.getString("faraday.config.dialog.auth.pass");
-        String SERVER_FIELD = messages.getString("faraday.config.dialog.server");
-        LOGIN_BUTTON = messages.getString("faraday.config.dialog.auth.login");
-        LOGOUT_BUTTON = messages.getString("faraday.config.dialog.auth.logout");
-        WORKSPACES_FIELD = messages.getString("faraday.config.dialog.workspace");
-        IMPORT_NEW_VULNS_FIELD = messages.getString("faraday.config.dialog.import.new");
-        SET_CONFIG_AS_DEFAULT = messages.getString("faraday.config.dialog.default");
-        IMPORT_BUTTON = messages.getString("faraday.config.dialog.import.new");
-        REFRESH_BUTTON = messages.getString("faraday.config.dialog.refresh");
-        RESTORE_BUTTON = messages.getString("faraday.config.dialog.restore");
-        SAVE_BUTTON = messages.getString("faraday.config.dialog.save");
+        String USERNAME_FIELD = Constant.messages.getString("faraday.config.dialog.auth.user");
+        String PASS_FIELD = Constant.messages.getString("faraday.config.dialog.auth.pass");
+        String SERVER_FIELD = Constant.messages.getString("faraday.config.dialog.server");
+        LOGIN_BUTTON = Constant.messages.getString("faraday.config.dialog.auth.login");
+        LOGOUT_BUTTON = Constant.messages.getString("faraday.config.dialog.auth.logout");
+        WORKSPACES_FIELD = Constant.messages.getString("faraday.config.dialog.workspace");
+        IMPORT_NEW_VULNS_FIELD = Constant.messages.getString("faraday.config.dialog.import.new");
+        SET_CONFIG_AS_DEFAULT = Constant.messages.getString("faraday.config.dialog.default");
+        IMPORT_BUTTON = Constant.messages.getString("faraday.config.dialog.import.new");
+        REFRESH_BUTTON = Constant.messages.getString("faraday.config.dialog.refresh");
+        RESTORE_BUTTON = Constant.messages.getString("faraday.config.dialog.restore");
+        SAVE_BUTTON = Constant.messages.getString("faraday.config.dialog.save");
         tabbedPane = new JTabbedPane();
 
         JPanel buttonLoginPanel = new JPanel();
@@ -175,11 +172,11 @@ public class ConfigurationDialog extends JFrame {
             }
         });
 
-        tabbedPane.addTab(messages.getString("faraday.config.dialog.tab.auth"), null, authPanel, null);
+        tabbedPane.addTab(Constant.messages.getString("faraday.config.dialog.tab.auth"), null, authPanel, null);
         tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 
 
-        tabbedPane.addTab(messages.getString("faraday.config.dialog.tabs.conf"), null, configPanel, null);
+        tabbedPane.addTab(Constant.messages.getString("faraday.config.dialog.tabs.conf"), null, configPanel, null);
         tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
 
         tabbedPane.setEnabledAt(1, false);
@@ -228,7 +225,7 @@ public class ConfigurationDialog extends JFrame {
             this.loginButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     if (fldUser.getText().equals("") || fldPass.getText().equals("") || fldServer.getText().equals("")) {
-                        showMessage(messages.getString("faraday.message.invalid.check.credentials"), messages.getString("faraday.dialog.login.title"), JOptionPane.ERROR_MESSAGE);
+                        showMessage(Constant.messages.getString("faraday.message.invalid.check.credentials"), Constant.messages.getString("faraday.dialog.login.title"), JOptionPane.ERROR_MESSAGE);
                     } else {
                         if (faradayClient.Login(fldUser.getText(), fldPass.getText(), fldServer.getText())) {
                             logoutButton.setVisible(true);
@@ -245,7 +242,7 @@ public class ConfigurationDialog extends JFrame {
                                 configPanel.add(getWSComboBox());
                             }
                         } else {
-                            showMessage(messages.getString("faraday.message.invalid.credentials"), messages.getString("faraday.dialog.login.title"), JOptionPane.ERROR_MESSAGE);
+                            showMessage(Constant.messages.getString("faraday.message.invalid.credentials"), Constant.messages.getString("faraday.dialog.login.title"), JOptionPane.ERROR_MESSAGE);
                         }
                     }
 
@@ -291,7 +288,7 @@ public class ConfigurationDialog extends JFrame {
                             }
 
                         } catch (IOException io) {
-                            System.out.println("We can't found default.properties file");
+                            System.out.println("We can't find default.properties file: " + io);
                         } finally {
                             if (input != null) {
                                 try {
@@ -303,9 +300,9 @@ public class ConfigurationDialog extends JFrame {
                         }
 
 
-                        showMessage(messages.getString("faraday.dialog.logout.success"), messages.getString("faraday.dialog.logout.title"), JOptionPane.INFORMATION_MESSAGE);
+                        showMessage(Constant.messages.getString("faraday.dialog.logout.success"), Constant.messages.getString("faraday.dialog.logout.title"), JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                        showMessage(messages.getString("faraday.dialog.logout.error"), messages.getString("faraday.dialog.logout.title"), JOptionPane.ERROR_MESSAGE);
+                        showMessage(Constant.messages.getString("faraday.dialog.logout.error"), Constant.messages.getString("faraday.dialog.logout.title"), JOptionPane.ERROR_MESSAGE);
                     }
                 }
             });
@@ -333,7 +330,7 @@ public class ConfigurationDialog extends JFrame {
     private JButton getCloseButton() {
         if (this.closeButton == null) {
             this.closeButton = new JButton();
-            this.closeButton.setText(messages.getString("faraday.dialog.button.close"));
+            this.closeButton.setText(Constant.messages.getString("faraday.dialog.button.close"));
             this.closeButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     setVisible(false);
@@ -352,7 +349,7 @@ public class ConfigurationDialog extends JFrame {
             this.restoreButton.setText(RESTORE_BUTTON);
             this.restoreButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    String fUser = JOptionPane.showInputDialog(messages.getString("faraday.config.dialog.restore"), messages.getString("faraday.dialog.enter.user"));
+                    String fUser = JOptionPane.showInputDialog(Constant.messages.getString("faraday.config.dialog.restore"), Constant.messages.getString("faraday.dialog.enter.user"));
                     if (fUser != null) {
                         restoreConfiguration(fUser);
                     }
@@ -394,7 +391,7 @@ public class ConfigurationDialog extends JFrame {
     }
 
 
-    private JComboBox getWSComboBox() {
+    private JComboBox<String> getWSComboBox() {
         Configuration configuration = Configuration.getSingleton();
 
         ArrayList<String> wsList = faradayClient.GetWorkspaces();
@@ -402,7 +399,7 @@ public class ConfigurationDialog extends JFrame {
         for (int i = 0; i < wsList.size(); i++) {
             workspaces[i] = wsList.get(i);
         }
-        cmbWorkspaces = new JComboBox(workspaces);
+        cmbWorkspaces = new JComboBox<String>(workspaces);
         if (workspaces.length > 0) {
             if (configuration.getWorkspace() != null) {
                 cmbWorkspaces.setSelectedItem(configuration.getWorkspace());
@@ -456,22 +453,22 @@ public class ConfigurationDialog extends JFrame {
             if (Configuration.getSingleton().save()) {
                 JOptionPane.showMessageDialog(
                         this,
-                        messages.getString("faraday.save.config.success"),
-                        messages.getString("faraday.config.dialog.title"),
+                        Constant.messages.getString("faraday.save.config.success"),
+                        Constant.messages.getString("faraday.config.dialog.title"),
                         JOptionPane.INFORMATION_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(
                         this,
-                        messages.getString("faraday.save.config.error"),
-                        messages.getString("faraday.config.dialog.title"),
+                        Constant.messages.getString("faraday.save.config.error"),
+                        Constant.messages.getString("faraday.config.dialog.title"),
                         JOptionPane.ERROR_MESSAGE);
 
             }
         } catch (IOException io) {
             JOptionPane.showMessageDialog(
                     this,
-                    messages.getString("faraday.save.config.error"),
-                    messages.getString("faraday.config.dialog.title"),
+                    Constant.messages.getString("faraday.save.config.error"),
+                    Constant.messages.getString("faraday.config.dialog.title"),
                     JOptionPane.ERROR_MESSAGE);
             io.printStackTrace();
 
@@ -496,15 +493,15 @@ public class ConfigurationDialog extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(
                         this,
-                        messages.getString("faraday.restore.config.error.login"),
-                        messages.getString("faraday.config.dialog.title"),
+                        Constant.messages.getString("faraday.restore.config.error.login"),
+                        Constant.messages.getString("faraday.config.dialog.title"),
                         JOptionPane.ERROR_MESSAGE);
             }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(
                     this,
-                    messages.getString("faraday.restore.config.error"),
-                    messages.getString("faraday.config.dialog.title"),
+                    Constant.messages.getString("faraday.restore.config.error"),
+                    Constant.messages.getString("faraday.config.dialog.title"),
                     JOptionPane.ERROR_MESSAGE);
         }
 
@@ -536,8 +533,8 @@ public class ConfigurationDialog extends JFrame {
         } catch (IOException io) {
             JOptionPane.showMessageDialog(
                     this,
-                    messages.getString("faraday.set.default.config.error"),
-                    messages.getString("faraday.config.dialog.title"),
+                    Constant.messages.getString("faraday.set.default.config.error"),
+                    Constant.messages.getString("faraday.config.dialog.title"),
                     JOptionPane.ERROR_MESSAGE);
             io.printStackTrace();
         } finally {
@@ -579,8 +576,8 @@ public class ConfigurationDialog extends JFrame {
             if (canShowAlert) {
                 JOptionPane.showMessageDialog(
                         this,
-                        messages.getString("faraday.refresh.workspace.done"),
-                        messages.getString("faraday.config.dialog.title"),
+                        Constant.messages.getString("faraday.refresh.workspace.done"),
+                        Constant.messages.getString("faraday.config.dialog.title"),
                         JOptionPane.INFORMATION_MESSAGE);
             }
         }

@@ -16,12 +16,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ResourceBundle;
 
-
+@SuppressWarnings("serial")
 public class PopupMenuItemSendRequest extends PopupMenuItemHistoryReferenceContainer {
     private FaradayClient faradayClient;
-    private ResourceBundle messages = null;
     private int selectionCount = 0;
     private static final Logger logger = Logger.getLogger(PopupMenuItemSendRequest.class);
 
@@ -30,9 +28,6 @@ public class PopupMenuItemSendRequest extends PopupMenuItemHistoryReferenceConta
         super(label, true);
         Configuration configuration = Configuration.getSingleton();
         faradayClient = new FaradayClient(configuration.getServer());
-        messages = ResourceBundle.getBundle(
-                this.getClass().getPackage().getName() +
-                        ".Messages", Constant.getLocale());
     }
 
     @Override
@@ -54,11 +49,11 @@ public class PopupMenuItemSendRequest extends PopupMenuItemHistoryReferenceConta
                 int iconMessage = 1;
                 switch (responseCode) {
                     case 403:
-                        message = messages.getString("faraday.send.alert.permissions.error");
+                        message = Constant.messages.getString("faraday.send.alert.permissions.error");
                         iconMessage = JOptionPane.WARNING_MESSAGE;
                         break;
                     case 409:
-                        message = messages.getString("faraday.send.request.conflict");
+                        message = Constant.messages.getString("faraday.send.request.conflict");
                         iconMessage = JOptionPane.WARNING_MESSAGE;
                         break;
                     case 500:
@@ -66,7 +61,7 @@ public class PopupMenuItemSendRequest extends PopupMenuItemHistoryReferenceConta
                         iconMessage = JOptionPane.ERROR_MESSAGE;
                         break;
                     case 201:
-                        message = messages.getString("faraday.send.request.success");
+                        message = Constant.messages.getString("faraday.send.request.success");
                         break;
                 }
 
@@ -74,7 +69,7 @@ public class PopupMenuItemSendRequest extends PopupMenuItemHistoryReferenceConta
                     JOptionPane.showMessageDialog(
                             this,
                             message,
-                            messages.getString("faraday.button.send.alert"),
+                            Constant.messages.getString("faraday.button.send.alert"),
                             iconMessage);
                 }
 
@@ -88,14 +83,14 @@ public class PopupMenuItemSendRequest extends PopupMenuItemHistoryReferenceConta
             } else {
                 JOptionPane.showMessageDialog(
                         this,
-                        messages.getString("faraday.send.alert.permissions.error"),
-                        messages.getString("faraday.button.send.request"),
+                        Constant.messages.getString("faraday.send.alert.permissions.error"),
+                        Constant.messages.getString("faraday.button.send.request"),
                         JOptionPane.ERROR_MESSAGE);
 
-                logger.error(messages.getString("faraday.send.alert.permissions.error"));
+                logger.error(Constant.messages.getString("faraday.send.alert.permissions.error"));
                 if (View.isInitialised()) {
                     // Report info to the Output tab
-                    View.getSingleton().getOutputPanel().append(messages.getString("faraday.send.alert.permissions.error") + "\n");
+                    View.getSingleton().getOutputPanel().append(Constant.messages.getString("faraday.send.alert.permissions.error") + "\n");
                 }
             }
 

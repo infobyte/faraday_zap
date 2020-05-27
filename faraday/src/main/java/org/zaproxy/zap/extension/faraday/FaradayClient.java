@@ -32,13 +32,9 @@ import java.util.*;
 public class FaradayClient {
 
     private String baseUrl;
-    private ResourceBundle messages = null;
 
     public FaradayClient(String baseUrl) {
         this.baseUrl = baseUrl;
-        messages = ResourceBundle.getBundle(
-                this.getClass().getPackage().getName() +
-                        ".Messages", Constant.getLocale());
 
     }
 
@@ -308,7 +304,7 @@ public class FaradayClient {
         }
 
 
-        String commandName = messages.getString("faraday.tool.command.name");
+        String commandName = Constant.messages.getString("faraday.tool.command.name");
         int commandId = AddCommand(commandName, workspace, session);
         if (commandId == -1) {
             return 500;
@@ -374,7 +370,9 @@ public class FaradayClient {
 
         JSONArray refsJsonArray = new JSONArray();
         String[] resfArray = alert.getReference().split("\n");
-        Collections.addAll(refsJsonArray, resfArray);
+        for (String s: resfArray) {
+            refsJsonArray.add(s);
+        }
         params.put("refs", refsJsonArray);
 
         try {

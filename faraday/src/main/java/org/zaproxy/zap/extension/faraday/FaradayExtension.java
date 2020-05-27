@@ -30,15 +30,14 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.io.*;
 import java.util.Properties;
-import java.util.ResourceBundle;
 
 public class FaradayExtension extends ExtensionAdaptor {
+    public static final String NAME = "Faraday Extension";
     private static final Logger logger = Logger.getLogger(FaradayExtension.class);
     private ZapMenuItem menuItemFaradayConfig;
     private ConfigurationDialog configurationDialog;
     private PopupMenuItemSendAlert popupMenuItemSendAlert;
     private PopupMenuItemSendRequest popupMenuItemSendRequest;
-    private ResourceBundle messages = null;
 
 
 
@@ -48,22 +47,23 @@ public class FaradayExtension extends ExtensionAdaptor {
 
 
     public FaradayExtension() {
-        super();
+        super(NAME);
+    }
+
+    @Override
+    public void init() {
+        super.init();
         initialize();
     }
 
-
     private void initialize() {
-        messages = ResourceBundle.getBundle(
-                this.getClass().getPackage().getName() +
-                        ".Messages", Constant.getLocale());
-        this.setName(messages.getString("faraday.extension.name"));
+        this.setName(Constant.messages.getString("faraday.extension.name"));
         this.initConfiguration();
     }
 
     @Override
     public String getAuthor() {
-        return messages.getString("faraday.extension.author");
+        return Constant.messages.getString("faraday.extension.author");
     }
 
     @Override
@@ -80,6 +80,11 @@ public class FaradayExtension extends ExtensionAdaptor {
     @Override
     public boolean canUnload() {
         return true;
+    }
+
+    @Override
+    public String getDescription() {
+        return Constant.messages.getString("faraday.extension.description");
     }
 
     private ZapMenuItem getMenuItemFaradayConfig() {
@@ -106,7 +111,7 @@ public class FaradayExtension extends ExtensionAdaptor {
 
     private void showConfigurationDialog() {
         if (configurationDialog == null) {
-            configurationDialog = new ConfigurationDialog(messages.getString("faraday.config.dialog.title"));
+            configurationDialog = new ConfigurationDialog(Constant.messages.getString("faraday.config.dialog.title"));
             configurationDialog.init();
         }
         configurationDialog.setVisible(true);
@@ -115,7 +120,7 @@ public class FaradayExtension extends ExtensionAdaptor {
 
     private ExtensionPopupMenuItem getPopupMenuItem() {
         if (popupMenuItemSendAlert == null) {
-            popupMenuItemSendAlert = new PopupMenuItemSendAlert(messages.getString("faraday.button.send.alert"));
+            popupMenuItemSendAlert = new PopupMenuItemSendAlert(Constant.messages.getString("faraday.button.send.alert"));
         }
 
         return popupMenuItemSendAlert;
@@ -125,7 +130,7 @@ public class FaradayExtension extends ExtensionAdaptor {
 
     private ExtensionPopupMenuItem getPopupMenuItemRequest() {
         if (popupMenuItemSendRequest == null) {
-            popupMenuItemSendRequest = new PopupMenuItemSendRequest(messages.getString("faraday.button.send.request"));
+            popupMenuItemSendRequest = new PopupMenuItemSendRequest(Constant.messages.getString("faraday.button.send.request"));
         }
 
         return popupMenuItemSendRequest;
@@ -151,7 +156,7 @@ public class FaradayExtension extends ExtensionAdaptor {
             configuration.restore(fUser);
 
         } catch (IOException io) {
-            System.out.println("We can't found default.properties file");
+            System.out.println("We can't find default.properties file: " + io);
         } finally {
             if (input != null) {
                 try {
