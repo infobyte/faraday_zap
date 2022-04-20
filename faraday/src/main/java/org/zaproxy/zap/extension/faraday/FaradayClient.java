@@ -1,6 +1,7 @@
-package faraday.src.main.java.org.zaproxy.zap.extension.faraday;
+package org.zaproxy.zap.extension.faraday;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.URIException;
@@ -26,26 +27,27 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.parosproxy.paros.Constant;
 import org.parosproxy.paros.core.scanner.Alert;
-import org.parosproxy.paros.model.HistoryReference;
 
-import java.io.*;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.sql.Time;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Instant;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class FaradayClient {
 
     private String baseUrl;
     private boolean ignoreSSLErrors;
-    private static final Logger logger = Logger.getLogger(FaradayClient.class);
+    private static final Logger logger = LogManager.getLogger(FaradayClient.class);
 
     public FaradayClient(String baseUrl, boolean ignoreSSLErrors) {
         this.baseUrl = baseUrl;
@@ -98,7 +100,7 @@ public class FaradayClient {
             try {
                 SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy()
                 {
-                    public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException
+                    @Override public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException
                     {
                         return true;
                     }
@@ -152,7 +154,7 @@ public class FaradayClient {
 
     public ArrayList<String> GetWorkspaces() {
         ArrayList<String> workspaces = new ArrayList<>();
-        String WORKSPACES_URL = "_api/v2/ws/";
+        String WORKSPACES_URL = "_api/v3/ws";
         HttpGet httpGet = new HttpGet(this.baseUrl + WORKSPACES_URL);
         Configuration configuration = Configuration.getSingleton();
 
@@ -199,7 +201,7 @@ public class FaradayClient {
 
 
     private int AddCommand(String commandName, String workspace, String session) {
-        String COMMAND_URL = "_api/v2/ws/" + workspace + "/commands/";
+        String COMMAND_URL = "_api/v3/ws/" + workspace + "/commands";
         HttpClient httpClient = this.getHttpClient();
         HttpPost httpPost = new HttpPost(this.baseUrl + COMMAND_URL);
 
@@ -210,7 +212,6 @@ public class FaradayClient {
             httpPost.setEntity(stringEntity);
             HttpResponse response = httpClient.execute(httpPost);
             HttpEntity entity = response.getEntity();
-
             if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 201 || response.getStatusLine().getStatusCode() == 409) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(entity.getContent()));
                 String output;
@@ -242,7 +243,7 @@ public class FaradayClient {
     }
 
     private int AddHost(Alert alert, String workspace, String session) {
-        String VULN_URL = "_api/v2/ws/" + workspace + "/hosts/";
+        String VULN_URL = "_api/v3/ws/" + workspace + "/hosts";
         HttpClient httpClient = this.getHttpClient();
         HttpPost httpPost = new HttpPost(this.baseUrl + VULN_URL);
 
@@ -253,7 +254,6 @@ public class FaradayClient {
             httpPost.setEntity(stringEntity);
             HttpResponse response = httpClient.execute(httpPost);
             HttpEntity entity = response.getEntity();
-
             if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 201 || response.getStatusLine().getStatusCode() == 409) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(entity.getContent()));
                 String output;
@@ -285,7 +285,7 @@ public class FaradayClient {
     }
 
     private int AddService(Alert alert, String workspace, String session, int hostId) {
-        String VULN_URL = "_api/v2/ws/" + workspace + "/services/";
+        String VULN_URL = "_api/v3/ws/" + workspace + "/services";
         HttpClient httpClient = this.getHttpClient();
         HttpPost httpPost = new HttpPost(this.baseUrl + VULN_URL);
 
@@ -346,6 +346,7 @@ public class FaradayClient {
         }
 
 
+
         String commandName = Constant.messages.getString("faraday.tool.command.name");
         int commandId = AddCommand(commandName, workspace, session);
         if (commandId == -1) {
@@ -353,11 +354,10 @@ public class FaradayClient {
         }
 
 
-        String VULN_URL = "_api/v2/ws/" + workspace + "/vulns/?command_id=" + commandId;
+        String VULN_URL = "_api/v3/ws/" + workspace + "/vulns";
         HttpClient httpClient = this.getHttpClient();
         HttpPost httpPost = new HttpPost(this.baseUrl + VULN_URL);
         try {
-
             StringEntity stringEntity = new StringEntity(ConvertAlertToParams(alert, workspace, parentType, serviceId).toString());
             httpPost.setHeader("Cookie", session);
             httpPost.setHeader("Content-Type", "application/json");
@@ -527,7 +527,7 @@ public class FaradayClient {
         JSONObject params = new JSONObject();
         params.put("itime", Instant.EPOCH.getEpochSecond());
         params.put("import_source", "shell");
-        params.put("duration", "");
+        params.put("duration", 0);
         params.put("command", "Zap");
         params.put("tool", commandName);
         return params;

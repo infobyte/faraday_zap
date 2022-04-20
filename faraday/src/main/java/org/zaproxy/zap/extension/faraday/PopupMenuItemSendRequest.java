@@ -1,6 +1,7 @@
-package faraday.src.main.java.org.zaproxy.zap.extension.faraday;
+package org.zaproxy.zap.extension.faraday;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.parosproxy.paros.Constant;
 import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.db.DatabaseException;
@@ -8,20 +9,18 @@ import org.parosproxy.paros.db.RecordAlert;
 import org.parosproxy.paros.model.HistoryReference;
 import org.parosproxy.paros.network.HttpMalformedHeaderException;
 import org.parosproxy.paros.view.View;
-import org.zaproxy.zap.extension.alert.PopupMenuAlert;
 import org.zaproxy.zap.view.messagecontainer.http.HttpMessageContainer;
 import org.zaproxy.zap.view.popup.PopupMenuItemHistoryReferenceContainer;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.Iterator;
+import javax.swing.JOptionPane;
+//import java.awt.*;
 import java.util.List;
 
 @SuppressWarnings("serial")
 public class PopupMenuItemSendRequest extends PopupMenuItemHistoryReferenceContainer {
     private FaradayClient faradayClient;
     private int selectionCount = 0;
-    private static final Logger logger = Logger.getLogger(PopupMenuItemSendRequest.class);
+    private static final Logger logger = LogManager.getLogger(PopupMenuItemSendRequest.class);
 
 
     public PopupMenuItemSendRequest(String label) {
