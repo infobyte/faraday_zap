@@ -1,3 +1,7 @@
+Its requiered have JDK installed. For ubuntu version you can use 
+```
+sudo apt install default-jdk
+```
 
 > Set development environment
 
