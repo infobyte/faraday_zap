@@ -1,28 +1,42 @@
-package faraday.src.main.java.org.zaproxy.zap.extension.faraday;
+package org.zaproxy.zap.extension.faraday;
 
-
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.parosproxy.paros.Constant;
 
-import javax.swing.*;
+import javax.swing.JLabel;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JComboBox;
+import javax.swing.JCheckBox;
+import javax.swing.JTextField;
+import javax.swing.JPasswordField;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.border.Border;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import javax.swing.JFrame;
+import javax.swing.BorderFactory;
+import java.awt.HeadlessException;
+import java.awt.Container;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.BorderLayout;
+import java.awt.event.ComponentListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.Properties;
 
 
 @SuppressWarnings("serial")
 public class ConfigurationDialog extends JFrame {
-    private static final Logger logger = Logger.getLogger(ConfigurationDialog.class);
+    private static final Logger logger = LogManager.getLogger(ConfigurationDialog.class);
     private FaradayClient faradayClient;
 
     private static String LOGIN_BUTTON = "Login";
     private static String LOGOUT_BUTTON = "Logout";
     private static String WORKSPACES_FIELD = "Select faraday workspace";
-    private static String IMPORT_NEW_VULNS_FIELD = "Import new vulnerabilities";
-    private static String IMPORT_BUTTON = "Import vulnerabilities";
     private static String REFRESH_BUTTON = "Refresh";
     private static String RESTORE_BUTTON = "Restore to defaults";
     private static String SAVE_BUTTON = "Save";
@@ -44,7 +58,6 @@ public class ConfigurationDialog extends JFrame {
     private JButton logoutButton;
     private JButton refreshButton;
     private JButton restoreButton;
-    private JButton importButton;
     private JButton saveButton;
     private JButton closeButton;
 
@@ -66,14 +79,14 @@ public class ConfigurationDialog extends JFrame {
         String PASS_FIELD = Constant.messages.getString("faraday.config.dialog.auth.pass");
         String SERVER_FIELD = Constant.messages.getString("faraday.config.dialog.server");
         String IGNORE_SSL_ERRORS_CHECKBOX = Constant.messages.getString("faraday.config.dialog.ignoreSslErrors");
-        LOGIN_BUTTON = Constant.messages.getString("faraday.config.dialog.auth.login");
-        LOGOUT_BUTTON = Constant.messages.getString("faraday.config.dialog.auth.logout");
-        WORKSPACES_FIELD = Constant.messages.getString("faraday.config.dialog.workspace");
-        IMPORT_NEW_VULNS_FIELD = Constant.messages.getString("faraday.config.dialog.import.new");
-        IMPORT_BUTTON = Constant.messages.getString("faraday.config.dialog.import.new");
-        REFRESH_BUTTON = Constant.messages.getString("faraday.config.dialog.refresh");
-        RESTORE_BUTTON = Constant.messages.getString("faraday.config.dialog.restore");
-        SAVE_BUTTON = Constant.messages.getString("faraday.config.dialog.save");
+        String LOGIN_BUTTON = Constant.messages.getString("faraday.config.dialog.auth.login");
+        String LOGOUT_BUTTON = Constant.messages.getString("faraday.config.dialog.auth.logout");
+        String WORKSPACES_FIELD = Constant.messages.getString("faraday.config.dialog.workspace");
+        String IMPORT_NEW_VULNS_FIELD = Constant.messages.getString("faraday.config.dialog.import.new");
+        String IMPORT_BUTTON = Constant.messages.getString("faraday.config.dialog.import.new");
+        String REFRESH_BUTTON = Constant.messages.getString("faraday.config.dialog.refresh");
+        String RESTORE_BUTTON = Constant.messages.getString("faraday.config.dialog.restore");
+        String SAVE_BUTTON = Constant.messages.getString("faraday.config.dialog.save");
         tabbedPane = new JTabbedPane();
 
         JPanel buttonLoginPanel = new JPanel();
@@ -110,7 +123,6 @@ public class ConfigurationDialog extends JFrame {
         buttonConfigPanel.add(getRefreshButton());
         buttonConfigPanel.add(getRestoreButton());
         buttonConfigPanel.add(getSaveButton());
-//        buttonConfigPanel.add(getImportButton());
         buttonConfigPanel.add(getLoginButton());
         buttonConfigPanel.add(getLogoutButton());
 
@@ -210,7 +222,7 @@ public class ConfigurationDialog extends JFrame {
             this.loginButton = new JButton();
             this.loginButton.setText(LOGIN_BUTTON);
             this.loginButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
+                @Override public void actionPerformed(ActionEvent e) {
                     if (fldUser.getText().equals("") || fldPass.getText().equals("") || fldServer.getText().equals("")) {
                         showMessage(Constant.messages.getString("faraday.message.invalid.check.credentials"), Constant.messages.getString("faraday.dialog.login.title"), JOptionPane.ERROR_MESSAGE);
                     } else {
@@ -252,7 +264,7 @@ public class ConfigurationDialog extends JFrame {
             this.logoutButton = new JButton();
             this.logoutButton.setText(LOGOUT_BUTTON);
             this.logoutButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
+                @Override public void actionPerformed(ActionEvent e) {
                     Configuration configuration = Configuration.getSingleton();
                     String userTemp = configuration.getUser();
                     if (faradayClient.Logout()) {
@@ -285,7 +297,7 @@ public class ConfigurationDialog extends JFrame {
             this.refreshButton = new JButton();
             this.refreshButton.setText(REFRESH_BUTTON);
             this.refreshButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
+                @Override public void actionPerformed(ActionEvent e) {
                     refreshWorkspaces(true);
                 }
             });
@@ -300,7 +312,7 @@ public class ConfigurationDialog extends JFrame {
             this.closeButton = new JButton();
             this.closeButton.setText(Constant.messages.getString("faraday.dialog.button.close"));
             this.closeButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
+                @Override public void actionPerformed(ActionEvent e) {
                     setVisible(false);
                 }
             });
@@ -314,7 +326,7 @@ public class ConfigurationDialog extends JFrame {
             this.restoreButton = new JButton();
             this.restoreButton.setText(RESTORE_BUTTON);
             this.restoreButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
+                @Override public void actionPerformed(ActionEvent e) {
                     logger.info("Restore to defaults");
                     Configuration configuration = Configuration.getSingleton();
                     configuration.restoreDefaultConfiguration();
@@ -330,27 +342,12 @@ public class ConfigurationDialog extends JFrame {
     }
 
 
-    private JButton getImportButton() {
-        if (this.importButton == null) {
-            this.importButton = new JButton();
-            this.importButton.setText(IMPORT_BUTTON);
-            this.importButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-
-                }
-            });
-        }
-
-        return this.importButton;
-    }
-
-
     private JButton getSaveButton() {
         if (this.saveButton == null) {
             this.saveButton = new JButton();
             this.saveButton.setText(SAVE_BUTTON);
             this.saveButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
+                @Override public void actionPerformed(ActionEvent e) {
                     saveConfiguration();
                     setVisible(false);
                 }

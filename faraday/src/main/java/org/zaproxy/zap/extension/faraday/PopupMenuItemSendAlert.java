@@ -1,18 +1,20 @@
-package faraday.src.main.java.org.zaproxy.zap.extension.faraday;
+package org.zaproxy.zap.extension.faraday;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.parosproxy.paros.Constant;
 import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.view.View;
 import org.zaproxy.zap.extension.alert.AlertNode;
 import org.zaproxy.zap.extension.alert.PopupMenuItemAlert;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JOptionPane;
+import javax.swing.JTree;
+import java.awt.Component;
 
 @SuppressWarnings("serial")
 public class PopupMenuItemSendAlert extends PopupMenuItemAlert {
-    private static final Logger logger = Logger.getLogger(PopupMenuItemSendAlert.class);
+    private static final Logger logger = LogManager.getLogger(PopupMenuItemSendAlert.class);
     private FaradayClient faradayClient;
     private int selectionCount = 0;
     private int totalSelectionCount = 0;

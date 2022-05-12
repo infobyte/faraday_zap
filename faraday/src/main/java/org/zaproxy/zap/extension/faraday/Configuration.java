@@ -18,12 +18,17 @@
  *  limitations under the License.
  */
 
-package faraday.src.main.java.org.zaproxy.zap.extension.faraday;
-import org.apache.log4j.Logger;
+package org.zaproxy.zap.extension.faraday;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.parosproxy.paros.Constant;
 
-import javax.swing.*;
-import java.io.*;
+//import javax.swing.*;
+import java.io.File;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.OutputStream;
+import java.io.FileOutputStream;
 import java.util.Properties;
 
 public class Configuration {
@@ -35,7 +40,7 @@ public class Configuration {
     private boolean autoImport;
     private boolean ignoreSslErrors;
     private static Configuration _instance;
-    private static final Logger logger = Logger.getLogger(Configuration.class);
+    private static final Logger logger = LogManager.getLogger(Configuration.class);
     private final File configurationFile;
 
     private Configuration() {

@@ -15,9 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package faraday.src.main.java.org.zaproxy.zap.extension.faraday;
+package org.zaproxy.zap.extension.faraday;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.parosproxy.paros.Constant;
 import org.parosproxy.paros.control.Control;
 import org.parosproxy.paros.extension.ExtensionAdaptor;
@@ -25,15 +26,14 @@ import org.parosproxy.paros.extension.ExtensionHook;
 import org.parosproxy.paros.extension.ExtensionPopupMenuItem;
 import org.zaproxy.zap.view.ZapMenuItem;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.KeyStroke;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
-import java.io.*;
-import java.util.Properties;
+//import java.io.*;
 
 public class FaradayExtension extends ExtensionAdaptor {
     public static final String NAME = "Faraday Extension";
-    private static final Logger logger = Logger.getLogger(FaradayExtension.class);
+    private static final Logger logger = LogManager.getLogger(FaradayExtension.class);
     private ZapMenuItem menuItemFaradayConfig;
     private ConfigurationDialog configurationDialog;
     private PopupMenuItemSendAlert popupMenuItemSendAlert;
@@ -101,7 +101,7 @@ public class FaradayExtension extends ExtensionAdaptor {
                     "faraday.menu.tools.label",
                     KeyStroke.getKeyStroke(
                             KeyEvent.VK_F,
-                            Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | KeyEvent.ALT_DOWN_MASK,
+                            Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | KeyEvent.ALT_DOWN_MASK,
                             false));
             menuItemFaradayConfig.setEnabled(Control.getSingleton().getMode() != Control.Mode.safe);
 

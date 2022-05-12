@@ -5,7 +5,7 @@ description = "Faraday ZAP Extension"
 
 zapAddOn {
     addOnName.set("Faraday")
-    zapVersion.set("2.9.0")
+    zapVersion.set("2.11.1")
     addOnStatus.set(AddOnStatus.RELEASE)
     manifest {
         author.set("Jorge Luis González Iznaga")
