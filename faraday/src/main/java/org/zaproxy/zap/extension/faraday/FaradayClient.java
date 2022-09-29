@@ -413,7 +413,10 @@ public class FaradayClient {
         JSONArray refsJsonArray = new JSONArray();
         String[] resfArray = alert.getReference().split("\n");
         for (String s: resfArray) {
-            refsJsonArray.add(s);
+            JSONObject reference = new JSONObject();
+            reference.put("name", s);
+            reference.put("type", "other");
+            refsJsonArray.add(reference);
         }
         params.put("refs", refsJsonArray);
 
